@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+	<script>
+		function changeScreenSize() {
+			window.resizeTo(screen.width-300,screen.height-500)
+		}
+	</script>
+    <head>
+         <meta charset="UTF-8">
+        <title>
+            He Can Fill Level Calculator V.0.0.1d
+        </title>
+
+        <style>
+			 body {
+                position: relative;
+                top: 0vh;
+                left: 12.5%;
+                max-width: 87.5%;
+				background-color: white;
+                background-image: url('http://www.physik.uni-regensburg.de/forschung/TerZ_De_Ru/pix/terzlogo_newcol_newform_de_ru.png');
+                background-size: 7.5% auto;
+                background-position: 2.5% 2vh;
+                background-repeat: no-repeat;
+				color: black;
+
+            }
+
+            fieldset {
+                width: 420px;
+                border-radius: 15px;
+            }
+
+            #helium-can, #helium-counter, #cryostat, #results {
+                position: relative;
+                top: 2vh;
+                left: 2vw;
+            }
+
+            #results{
+                top: 7.5vh;
+                font-size: 20px;
+                color: red;
+            }
+
+            #calculate-button{
+                position: relative;
+                top: 5vh;
+                left: 6vw;
+            }
+
+            #paramters{
+                position: relative;
+                top: 10vh;
+                left: 2vw;
+                font-size: 10px;
+            }
+
+			#nightmode-button{
+				position: relative;
+                top: 15.5vh;
+                left: 4vw;
+				width: 120px;
+				text-align: center;
+			}
+
+
+            footer{
+              position: relative;
+              bottom: -18vh;
+              left: 2vw;
+              font-size: 15px;
+            }
+        </style>
+    </head>
+
+    <body onload="changeScreenSize()">
+
+        <h2>Calculate the actual fill level of the helium dewar during cryo fill process </h2>
+        This widget was originally designed for the blue Oxford Spectromag @ Laser 7.
+		The estimated error is at the moment &#8723; 6 liters.
+		<div id="important-note" style="color:red;">
+			Important note: The actual fill height might differ from dewar to dewar!
+			If you measure with the dip stick, you have an error of &#8723; 5 liters!</br>
+			The fill capacity of Janis Cryo is estimated as no data is available!
+		</div>
+
+
+        <form onsubmit="calculateValues();return false">
+            <fieldset id="helium-can">
+                <legend>Helium dewar original fill level:</legend>
+                Start value:<br>
+                <input type="number" id="can-start" value="" maxlength="3" minlength="0" step="0.01"> liters
+                <br>
+				<!--<br>
+				How many percent did you fill the cryo with THIS can before? (Add up if you filled multiple times!)
+				<br>
+                <input type="number" id="cryostat-this-can-before" value="" maxlength="3" minlength="0" step="0.01"> %
+				<br>-->
+            </fieldset>
+			</br>
+            <fieldset id="helium-counter">
+                <legend>Helium counter values:</legend>
+                Start value (when you initially connected the can to the return):<br>
+                <input type="number" id="counter-start" step="0.001"> m&sup3;
+                <!--<input type="number" id="counter-start-first" value="" maxlength="3" minlength="0">.<input type="number" id="counter-start-second" value=""maxlength="3" minlength="3">,<input type="number" id="counter-start-third" value="" maxlength="2" minlength="2"> m&sup3
+                -->
+
+                <br>
+                Actual value:<br>
+                <input type="number" id="counter-now" step="0.001"> m&sup3;
+                <!--<input type="number" id="counter-now-first" value="" maxlength="3" minlength="0">.<input type="number" id="counter-now-second" value=""maxlength="3" minlength="3">,<input type="number" id="counter-now-third" value="" maxlength="2" minlength="2"> m&sup3
+                -->
+           </fieldset>
+			</br>
+            <fieldset id="cryostat">
+                <legend>Helium in Cryostat:</legend>
+				<input type="radio" id="cryo-selector-oxford" name="cryo-selector" value="oxford">  Oxford Spectromag @ Laser 7
+				</br>
+				<input type="radio" id="cryo-selector-janis" name="cryo-selector" value="janis">  Janis Cryostat @ Laser 4
+				</br>
+				</br>
+				Before value (with OLD dewar!):<br>
+                <input type="number" id="cryostat-old" value="" maxlength="3" minlength="0" step="0.01"> %
+				<br>
+                Actual value:<br>
+                <input type="number" id="cryostat-now" value="" maxlength="3" minlength="0" step="0.01"> %
+            </fieldset>
+
+            <input type="submit" value="Calculate!" id="calculate-button">
+        </form>
+
+        <fieldset id="results">
+              <legend>Results:</legend>
+              Helium dewar: <span id="can-result" value=""></span> liters, &asymp; <span id="can-result-mm" value=""></span> mm
+              <br>
+              Cryostat: <span id="cryostat-result" value=""></span> liters
+              <br>
+              Evaporated: <span id="evaporation-result"></span> liters
+         </fieldset>
+
+         <fieldset id="paramters">
+              <legend>Parameters used for calculation:</legend>
+              helium capacity cryostat: 20 liters
+              <br>
+              1 m&sup3; helium gas &#8793; 1.336 liters of liquid helium
+              <br>
+			  reference height from helium dewar no. 25
+			  <br>
+         </fieldset>
+
+		 <button id="nightmode-button">
+			Night-Mode
+		 </button>
+
+         <footer>
+              Programmed by DS; version: V.0.0.1d-DEMO – 11/18/2019
+         </footer>
+
+    </body>
+
+    <script>
+
+        function getValue(x){
+            return parseFloat(document.getElementById(x).value);
+        }
+
+        function setDefaultValue(x,y){
+            document.getElementById(x).value=y;
+        }
+
+        function writeSpanValueAndInnerHTML(x,y){
+            document.getElementById(x).value=y;
+            document.getElementById(x).innerHTML=y;
+        }
+
+        function calculateValues(){
+            var canStartValue=getValue("can-start");
+            var counterStartValue = getValue("counter-start");
+            var counterNowValue = getValue("counter-now");
+            var cryoNowValue = getValue("cryostat-now");
+			var cryoOldValue = getValue("cryostat-old");
+
+            var cubicToliters=1.336;
+            var oxfordHeCapacity=20;
+			var janisHeCapacity=35;
+			var CryoHeCapacity;
+
+			//var canPulledOutBefore=(canHowManyTimesFullyFilled/100)*oxfordHeCapacity;
+			//console.log(canPulledOutBefore);
+
+			_CryoActiveJanis=document.getElementById("cryo-selector-janis").checked;
+
+			if (_CryoActiveJanis==true) {
+				CryoHeCapacity=janisHeCapacity;
+				x=document.getElementById("paramters");
+				x.innerHTML="<legend>Parameters used for calculation:</legend> helium capacity cryostat: 35 liters <br> 1 m&sup3; helium gas &#8793; 1.336 liters of liquid helium </br> reference height from helium can no. 25 <br>";
+			} else {
+				CryoHeCapacity=oxfordHeCapacity;
+				x=document.getElementById("paramters");
+				x.innerHTML="<legend>Parameters used for calculation:</legend> helium capacity cryostat: 20 liters <br> 1 m&sup3; helium gas &#8793; 1.336 liters of liquid helium </br> reference height from helium can no. 25 <br>";
+			}
+
+            var evaporation= ((counterNowValue-counterStartValue)*cubicToliters).toFixed(2);
+			var cryostatOldFillliters=((cryoOldValue*CryoHeCapacity/100)).toFixed(2);
+			var evaporationHelper=evaporation-cryostatOldFillliters;
+            var cryostatFillliters=(cryoNowValue*CryoHeCapacity/100).toFixed(2);
+			var cryostatFillHelperVariable=cryostatFillliters-cryostatOldFillliters;
+            var canNowValue=((canStartValue-evaporationHelper-cryostatFillliters)).toFixed(2); //cryostatFillliters+cryostatOldFillliters
+
+			var canNowFillheight;
+
+			if (canNowValue>=10){
+				canNowFillheight=((parseFloat(canNowValue)+6.23551)/0.16075).toFixed(0);
+				//console.log(canNowValue,canNowFillheight);
+			}else{
+				canNowFillheight=(-0.34554*Math.pow(parseFloat(canNowValue),2)+11.83522*canNowValue+17.1297).toFixed(0);
+			}
+
+            writeSpanValueAndInnerHTML("cryostat-result",cryostatFillliters);
+            writeSpanValueAndInnerHTML("can-result",canNowValue);
+			writeSpanValueAndInnerHTML("can-result-mm",canNowFillheight);
+            writeSpanValueAndInnerHTML("evaporation-result",evaporation);
+
+            setDefaultValue("can-start",canStartValue);
+            setDefaultValue("counter-start",counterStartValue);
+            setDefaultValue("counter-now",counterNowValue);
+            setDefaultValue("cryostat-now",cryoNowValue);
+        }
+
+		var changecounter=0;
+		document.getElementById("nightmode-button").onclick=function(){
+				//var json = require('./data.json'); //(with path)
+				//document.body.innerHTML="test ";
+				if (changecounter%2==0){
+						document.body.style.color="white";
+						document.body.style.backgroundColor= "gray";
+						document.getElementById("important-note").style.color="#f87a43";
+						document.getElementById("results").style.color="#f87a43";
+						document.getElementById("nightmode-button").innerHTML="Normal-Mode";
+					}
+
+				if (changecounter%2==1){
+						document.body.style.color="black";
+						document.body.style.backgroundColor= "white";
+						document.getElementById("important-note").style.color="red";
+						document.getElementById("results").style.color="red";
+						document.getElementById("nightmode-button").innerHTML="Night-Mode";
+					}
+				changecounter+=1;
+		};
+    </script>
+</html>
